@@ -1,4 +1,4 @@
-import './css/styles.css';
+// import './css/styles.css';
 import Notiflix from 'notiflix';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
@@ -13,7 +13,7 @@ const lightbox = new SimpleLightbox('.gallery a');
 let searchState = '';
 let pageState = 1;
 const limit = 40;
-const totalPages = Math.ceil(500 / limit);
+let totalPages = null;
 
 form.addEventListener('submit', onFormSubmit);
 btn.addEventListener('click', onLoadMoreBtnClick);
@@ -72,7 +72,16 @@ async function onFormSubmit(e) {
   const search = e.target.elements.searchQuery.value.trim();
 
   if (!search) {
+    // if (btn.classList.contains('visually-hidden') === false) {
+    //   btn.classList.add('visually-hidden');
+    // }
+
+    btn.classList.contains('visually-hidden') === false
+      ? btn.classList.add('visually-hidden')
+      : true;
+
     clearGallery();
+
     return;
   }
 
@@ -80,35 +89,37 @@ async function onFormSubmit(e) {
     searchState = search;
     pageState = 1;
 
-    if (!btn.classList.contains('visually-hidden')) {
-      btn.classList.add('visually-hidden');
-    }
+    // if (btn.classList.contains('visually-hidden') === false) {
+    //   btn.classList.add('visually-hidden');
+    // }
+
+    btn.classList.contains('visually-hidden') === false
+      ? btn.classList.add('visually-hidden')
+      : true;
 
     clearGallery();
 
     try {
       const response = await getImages(search, pageState);
+      const { hits, totalHits } = response.data;
 
-      if (response.data.hits.length === 0) {
+      if (hits.length === 0) {
         Notiflix.Notify.failure(
           'Sorry, there are no images matching your search query. Please try again.'
         );
         return;
       }
 
-      Notiflix.Notify.success(
-        `Hooray! We found ${response.data.totalHits} images.`
-      );
+      Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
 
-      if (response.data.totalHits > 40) {
-        btn.classList.remove('visually-hidden');
-      }
-
-      renderGallery(response.data.hits);
-
+      renderGallery(hits);
       lightbox.refresh();
 
-      pageState += 1;
+      if (totalHits > 40) {
+        btn.classList.remove('visually-hidden');
+        totalPages = totalHits;
+        pageState += 1;
+      }
     } catch (error) {
       console.log(error);
     }
@@ -139,22 +150,22 @@ async function onFormSubmit(e) {
 async function onLoadMoreBtnClick() {
   const search = document.querySelector('#search-form > input').value.trim();
 
-  if (pageState > totalPages) {
-    btn.classList.add('visually-hidden');
-
-    Notiflix.Notify.info(
-      "We're sorry, but you've reached the end of search results."
-    );
-  }
-
   try {
     const response = await getImages(search, pageState);
-    renderGallery(response.data.hits);
 
+    renderGallery(response.data.hits);
     lightbox.refresh();
 
     pageState += 1;
   } catch (error) {
     console.log(error);
+  }
+
+  if (pageState > Math.ceil(totalPages / limit)) {
+    btn.classList.add('visually-hidden');
+
+    Notiflix.Notify.info(
+      "We're sorry, but you've reached the end of search results."
+    );
   }
 }
