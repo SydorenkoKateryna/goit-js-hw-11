@@ -1,4 +1,3 @@
-// import './css/styles.css';
 import Notiflix from 'notiflix';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
@@ -18,64 +17,12 @@ let totalPages = null;
 form.addEventListener('submit', onFormSubmit);
 btn.addEventListener('click', onLoadMoreBtnClick);
 
-// function onFormSubmit(e) {
-//   e.preventDefault();
-
-//   const search = e.target.elements.searchQuery.value.trim();
-
-//   if (!search) {
-//     clearGallery();
-//     return;
-//   }
-
-//   if (search !== searchState) {
-//     searchState = search;
-//     pageState = 1;
-
-//     if (!btn.classList.contains('visually-hidden')) {
-//       btn.classList.add('visually-hidden');
-//     }
-
-//     clearGallery();
-
-//     getImages(search, pageState)
-//       .then(response => {
-//         if (response.hits.length === 0) {
-//           Notiflix.Notify.failure(
-//             'Sorry, there are no images matching your search query. Please try again.'
-//           );
-//           return;
-//         }
-
-//         Notiflix.Notify.success(
-//           `Hooray! We found ${response.totalHits} images.`
-//         );
-
-//         renderGallery(response.hits);
-//         lightbox.refresh();
-
-//         if (response.totalHits > 40) {
-//           btn.classList.remove('visually-hidden');
-//         }
-
-//         pageState += 1;
-//       })
-//       .catch(error => {
-//         console.log(error);
-//       });
-//   }
-// }
-
 async function onFormSubmit(e) {
   e.preventDefault();
 
   const search = e.target.elements.searchQuery.value.trim();
 
   if (!search) {
-    // if (btn.classList.contains('visually-hidden') === false) {
-    //   btn.classList.add('visually-hidden');
-    // }
-
     btn.classList.contains('visually-hidden') === false
       ? btn.classList.add('visually-hidden')
       : true;
@@ -89,77 +36,46 @@ async function onFormSubmit(e) {
     searchState = search;
     pageState = 1;
 
-    // if (btn.classList.contains('visually-hidden') === false) {
-    //   btn.classList.add('visually-hidden');
-    // }
-
     btn.classList.contains('visually-hidden') === false
       ? btn.classList.add('visually-hidden')
       : true;
 
     clearGallery();
 
-    try {
-      const response = await getImages(search, pageState);
-      const { hits, totalHits } = response.data;
+    const response = await getImages(search, pageState);
+    const { hits, totalHits } = response.data;
 
-      if (hits.length === 0) {
-        Notiflix.Notify.failure(
-          'Sorry, there are no images matching your search query. Please try again.'
-        );
-        return;
-      }
+    if (hits.length === 0) {
+      Notiflix.Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
+      return;
+    }
 
-      Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
+    Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
 
-      renderGallery(hits);
-      lightbox.refresh();
+    renderGallery(hits);
 
-      if (totalHits > 40) {
-        btn.classList.remove('visually-hidden');
-        totalPages = totalHits;
-        pageState += 1;
-      }
-    } catch (error) {
-      console.log(error);
+    lightbox.refresh();
+
+    if (totalHits > 40) {
+      btn.classList.remove('visually-hidden');
+      totalPages = totalHits;
+      pageState += 1;
     }
   }
 }
 
-// function onLoadMoreBtnClick() {
-//   const search = document.querySelector('#search-form > input').value.trim();
-
-//   if (pageState > totalPages) {
-//     btn.classList.add('visually-hidden');
-
-//     Notiflix.Notify.info(
-//       "We're sorry, but you've reached the end of search results."
-//     );
-//   }
-
-//   getImages(search, pageState)
-//     .then(response => {
-//       renderGallery(response.hits);
-//       lightbox.refresh();
-
-//       pageState += 1;
-//     })
-//     .catch(error => console.log(error));
-// }
-
 async function onLoadMoreBtnClick() {
   const search = document.querySelector('#search-form > input').value.trim();
 
-  try {
-    const response = await getImages(search, pageState);
+  const response = await getImages(search, pageState);
 
-    renderGallery(response.data.hits);
-    lightbox.refresh();
+  renderGallery(response.data.hits);
 
-    pageState += 1;
-  } catch (error) {
-    console.log(error);
-  }
+  lightbox.refresh();
+
+  pageState += 1;
 
   if (pageState > Math.ceil(totalPages / limit)) {
     btn.classList.add('visually-hidden');
